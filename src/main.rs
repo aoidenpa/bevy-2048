@@ -136,7 +136,7 @@ fn setup(
     map.insert(4096, Color::srgb_u8(155, 124, 68));
     map.insert(8192, Color::srgb_u8(199, 113, 244));
     map.insert(16384, Color::srgb_u8(103, 40, 225));
-    map.insert(32768, Color::srgb_u8(237, 199, 131));
+    map.insert(32768, Color::srgb_u8(237, 198, 131));
     map.insert(65536, Color::srgb_u8(144, 52, 192));
 
     commands.insert_resource(ColorMap { map });
