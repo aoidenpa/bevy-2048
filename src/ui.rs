@@ -16,139 +16,116 @@ impl Plugin for GameUiPlugin {
 
 fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<TitleFont>) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_items: AlignItems::End,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::End,
+            justify_content: JustifyContent::Center,
             ..default()
-        })
-        .with_children(|parent| {
-            parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(65.0),
+        }).with_children(|parent| {
+            parent.spawn((
+		    Button,
+		    Node {
+			width: Val::Percent(100.0),
+                        height: Val::Px(100.0),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..default()
-                    },
-                    border_color: BorderColor(Color::NONE),
-                    background_color: Color::NONE.into(),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "New Game (R)",
-                        TextStyle {
-                            font: font.0.clone_weak(),
-                            font_size: 50.0,
-                            color: Color::srgb(0.75, 0.75, 0.75),
-                        },
+		    },
+                    BorderColor(Color::NONE),
+                    BackgroundColor(Color::NONE),
+                )).with_children(|parent| {
+                    parent.spawn((
+			Text::new("New Game (R)"),
+			TextFont {
+			    font: font.0.clone_weak(),
+                            font_size: 64.0,
+			    ..default()
+			},
+			TextColor(Color::srgb(0.75, 0.75, 0.75)),
                     ));
                 });
+	    parent.spawn((
+		Text::new("Score: "),
+		TextFont {
+		    font: title_font.0.clone_weak(),
+                    font_size: 32.0,
+		    ..default()
+		},
+		TextColor(Color::srgb(0.6, 0.6, 0.6)),
+		Node {
+		    position_type: PositionType::Absolute,
+		    left: Val::Px(10.0),
+		    top: Val::Px(10.0),
+                    ..default()
+		}
+	    )).with_child((
+		TextSpan::new("0"),
+		TextColor(Color::srgb(0.6, 0.6, 0.6)),
+		TextFont {
+		    font: title_font.0.clone_weak(),
+                    font_size: 32.0,
+		    ..default()
+		},
+		ScoreMarker,
+	    ));
+	    parent.spawn((
+		Text::new("High: "),
+		TextFont {
+		    font: title_font.0.clone_weak(),
+                    font_size: 32.0,
+		    ..default()
+		},
+		TextColor(Color::srgb(0.6, 0.6, 0.6)),
+		Node {
+		    position_type: PositionType::Absolute,
+		    left: Val::Px(10.0),
+		    top: Val::Px(60.0),
+                    ..default()
+		}
+	    )).with_child((
+		TextSpan::new("0"),
+		TextColor(Color::srgb(0.6, 0.6, 0.6)),
+		TextFont {
+		    font: title_font.0.clone_weak(),
+                    font_size: 32.0,
+		    ..default()
+		},
+		HighScoreMarker,
+	    ));
         });
-    //score
-    let score_entity = commands
-        .spawn(TextBundle {
-            text: Text::from_sections([
-                TextSection::new(
-                    "Score: ",
-                    TextStyle {
-                        font: font.0.clone_weak(),
-                        font_size: 50.0,
-                        color: Color::srgb(0.6, 0.6, 0.6),
-                    },
-                ),
-                TextSection::new(
-                    "0",
-                    TextStyle {
-                        font: font.0.clone_weak(),
-                        font_size: 50.0,
-                        color: Color::srgb(0.3, 0.3, 0.3),
-                    },
-                ),
-            ]),
-            style: Style {
-                position_type: PositionType::Absolute,
-                right: Val::Px(40.0),
-                bottom: Val::Percent(5.0),
-                ..default()
-            },
+    commands.spawn((
+	Text::new("2048"),
+	Node {
+	    position_type: PositionType::Absolute,
+	    justify_self: JustifySelf::Center,
+            top: Val::Px(90.0),
             ..default()
-        })
-        .id();
-    let high_score_entity = commands
-        .spawn(TextBundle {
-            text: Text::from_sections([
-                TextSection::new(
-                    "High: ",
-                    TextStyle {
-                        font: font.0.clone_weak(),
-                        font_size: 50.0,
-                        color: Color::srgb(0.6, 0.6, 0.6),
-                    },
-                ),
-                TextSection::new(
-                    "0",
-                    TextStyle {
-                        font: font.0.clone_weak(),
-                        font_size: 50.0,
-                        color: Color::srgb(0.3, 0.3, 0.3),
-                    },
-                ),
-            ]),
-            style: Style {
-                position_type: PositionType::Absolute,
-                right: Val::Px(40.0),
-                bottom: Val::Percent(2.0),
-                /* left: Val::Percent(75.0),
-                top: Val::Percent(96.0), */
-                ..default()
-            },
-            ..default()
-        })
-        .id();
-    commands.insert_resource(ScoreUi {
-        cur: score_entity,
-        high: high_score_entity,
-    });
-    commands.spawn(TextBundle {
-        style: Style {
-            justify_self: JustifySelf::Center,
-            top: Val::Percent(2.0),
-            ..default()
-        },
-        text: Text::from_section(
-            "2048",
-            TextStyle {
-                font: title_font.0.clone_weak(),
-                font_size: 120.0,
-                color: Color::srgb(0.5, 0.1, 0.4),
-            },
-        ),
-        ..default()
-    });
+	},
+	TextFont {
+            font: title_font.0.clone_weak(),
+            font_size: 80.0,
+	    ..default()
+	},
+	TextColor(Color::srgb(0.5, 0.1, 0.4)),
+    ));
 }
 fn new_game_system(
     mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<Button>)>,
-    mut text_query: Query<&mut Text>,
+    mut text_query: Query<&mut TextColor>,
     mut new_game_event: EventWriter<NewGameEvent>,
 ) {
     for (interaction, children) in &mut interaction_query {
-        let mut text = text_query.get_mut(children[0]).unwrap();
+        let mut text_color = text_query.get_mut(children[0]).unwrap();
         match *interaction {
             Interaction::Pressed => {
                 new_game_event.send(NewGameEvent);
             }
             Interaction::Hovered => {
-                text.sections[0].style.color = Color::srgb(0.3, 0.3, 0.3);
+                text_color.0 = Color::srgb(0.3, 0.3, 0.3);
             }
             Interaction::None => {
-                text.sections[0].style.color = Color::srgb(0.75, 0.75, 0.75);
+                text_color.0 = Color::srgb(0.75, 0.75, 0.75);
             }
         }
     }
@@ -156,26 +133,22 @@ fn new_game_system(
 
 fn create_game_over(mut commands: Commands, font: Res<PieceFont>) {
     commands.spawn((
-        TextBundle {
-            style: Style {
-                align_self: AlignSelf::Center,
-                justify_self: JustifySelf::Center,
-                ..default()
-            },
-            text: Text::from_section(
-                "GAME OVER",
-                TextStyle {
-                    font: font.0.clone_weak(),
-                    font_size: 200.0,
-                    color: Color::srgb(0.1, 0.1, 0.1),
-                },
-            ),
+	Text::new("GAME OVER"),
+	TextFont {
+	    font: font.0.clone_weak(),
+            font_size: 200.0,
+	    ..default()
+	},
+	TextColor(Color::srgb(0.1, 0.1, 0.1)),
+	Node {
+	    align_self: AlignSelf::Center,
+            justify_self: JustifySelf::Center,
             ..default()
-        },
-        GameOverUi,
+	},
+        GameOverMarker,
     ));
 }
-fn remove_game_over(mut commands: Commands, query: Query<Entity, With<GameOverUi>>) {
+fn remove_game_over(mut commands: Commands, query: Query<Entity, With<GameOverMarker>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
@@ -183,23 +156,21 @@ fn remove_game_over(mut commands: Commands, query: Query<Entity, With<GameOverUi
 
 fn update_score_ui(
     score: Res<Score>,
-    score_ui: Res<ScoreUi>,
     high_score: Res<HighScore>,
-    mut query: Query<&mut Text>,
+    mut score_query: Query<&mut TextSpan, (With<ScoreMarker>, Without<HighScoreMarker>)>,
+    mut high_query: Query<&mut TextSpan, With<HighScoreMarker>>,
 ) {
-    if let Ok(mut text) = query.get_mut(score_ui.cur) {
-        text.sections[1].value = score.0.to_string();
+    if let Ok(mut text) = score_query.get_single_mut() {
+        text.0 = score.0.to_string();
     }
-    if let Ok(mut text) = query.get_mut(score_ui.high) {
-        text.sections[1].value = high_score.0.to_string();
+    if let Ok(mut text) = high_query.get_single_mut() {
+        text.0 = high_score.0.to_string();
     }
-}
-
-#[derive(Resource)]
-struct ScoreUi {
-    cur: Entity,
-    high: Entity,
 }
 
 #[derive(Component)]
-struct GameOverUi;
+struct GameOverMarker;
+#[derive(Component)]
+struct ScoreMarker;
+#[derive(Component)]
+struct HighScoreMarker;

@@ -38,55 +38,55 @@ fn main() {
                 ..default()
             }),
     )
-    .add_plugins(BevySprityPlugin)
-    .add_plugins(TweeningPlugin)
-    .add_plugins(GameUiPlugin)
-    .insert_resource(config)
-    .insert_state(AppState::Setup)
-    .insert_resource(ClearColor(Color::linear_rgb(1.0, 1.0, 1.0)))
-    .add_event::<AddPieceEvent>()
-    .add_event::<SetValueEvent>()
-    .add_event::<MoveEvent>()
-    .add_event::<NewGameEvent>()
-    .add_systems(
-        OnEnter(AppState::Setup),
-        (
-            setup,
-            apply_deferred,
-            create_board,
-            apply_deferred,
-            start_game,
-        )
-            .in_set(InitSet)
-            .chain(),
-    )
-    .add_systems(Update, input)
-    .add_systems(Update, (check_anim_end).run_if(in_state(AppState::Anim)))
-    .add_systems(
-        Update,
-        (anim_completed_event).run_if(on_event::<TweenCompleted>()),
-    )
-    .add_systems(Update, (new_game_event).run_if(on_event::<NewGameEvent>()))
-    .add_systems(
-        Update,
-        (set_board, process_move)
-            .chain()
-            .run_if(on_event::<MoveEvent>()),
-    )
-    .add_systems(
-        Update,
-        (set_value_event)
-            .chain()
-            .run_if(on_event::<SetValueEvent>()),
-    )
-    .add_systems(OnEnter(AppState::PostAnim), (set_board, post_anim).chain())
+	.add_plugins(AsepriteUltraPlugin)
+	.add_plugins(TweeningPlugin)
+	.add_plugins(GameUiPlugin)
+	.insert_resource(config)
+	.insert_state(AppState::Setup)
+	.insert_resource(ClearColor(Color::linear_rgb(1.0, 1.0, 1.0)))
+	.add_event::<AddPieceEvent>()
+	.add_event::<SetValueEvent>()
+	.add_event::<MoveEvent>()
+	.add_event::<NewGameEvent>()
+	.add_systems(
+            OnEnter(AppState::Setup),
+            (
+		setup,
+		apply_deferred,
+		create_board,
+		apply_deferred,
+		start_game,
+            )
+		.in_set(InitSet)
+		.chain(),
+	)
+	.add_systems(Update, input)
+	.add_systems(Update, (check_anim_end).run_if(in_state(AppState::Anim)))
+	.add_systems(
+            Update,
+            (anim_completed_event).run_if(on_event::<TweenCompleted>)
+	)
+	.add_systems(Update, (new_game_event).run_if(on_event::<NewGameEvent>))
+	.add_systems(
+            Update,
+            (set_board, process_move)
+		.chain()
+		.run_if(on_event::<MoveEvent>,)
+	)
+	.add_systems(
+            Update,
+            (set_value_event)
+		.chain()
+		.run_if(on_event::<SetValueEvent>),
+	)
+	.add_systems(OnEnter(AppState::PostAnim), (set_board, post_anim).chain())
     //.add_systems(OnEnter(AppState::Input), check_game_end)
-    .add_systems(
-        Update,
-        (add_piece_event, apply_deferred, check_game_end)
-            .chain()
-            .run_if(on_event::<AddPieceEvent>()),
-    );
+	.add_systems(
+            Update,
+            (add_piece_event, apply_deferred, check_game_end)
+		.chain()
+		.run_if(on_event::<AddPieceEvent>),
+	);
     app.run();
 }
 fn setup(
@@ -95,13 +95,16 @@ fn setup(
     asset_server: Res<AssetServer>,
     config: Res<Config>,
 ) {
-    commands.spawn((Camera2dBundle {
-        transform: Transform::from_xyz(config.window_size.x, -config.window_size.y, 100.0),
-        projection: OrthographicProjection { ..default() },
-        ..default()
-    },));
+    commands.spawn((
+	Camera2d,
+	Transform::from_xyz(config.window_size.x / 2.0, -config.window_size.y / 2.0, 100.0),
+        OrthographicProjection::default_2d(),
+	UiAntiAlias::Off,
+	Msaa::Off,
+    ));
     add_event.send(AddPieceEvent(2));
-    let font = asset_server.load("mai10/mai10.ttf");
+    //let font = asset_server.load("mai10/mai10.ttf");
+    let font = asset_server.load("rainyhearts.ttf");
     let title_font = asset_server.load("Early GameBoy.ttf");
     let sprite = asset_server.load("sprites.aseprite");
     commands.insert_resource(PieceFont(font));
@@ -110,16 +113,11 @@ fn setup(
     commands.insert_resource(Board {
         pieces: vec![None; (config.size * config.size) as usize],
     });
-    let pos = config.window_size - Vec2::new(config.board_size(), config.board_size()) / 2.0;
-    let pivot = commands
-        .spawn((
-            TransformBundle {
-                local: Transform::from_xyz(pos.x, -pos.y, 0.0),
-                ..default()
-            },
-            VisibilityBundle::default(),
-        ))
-        .id();
+    let pos = (config.window_size - Vec2::new(config.board_size(), config.board_size())) / 2.0;
+    let pivot = commands.spawn((
+        Transform::from_xyz(pos.x, -pos.y - 50.0, 0.0),
+	Visibility::Visible,
+    )).id();
     commands.insert_resource(BoardPivot(pivot));
     let mut map = HashMap::new();
     map.insert(2, Color::srgb_u8(255, 209, 0));
@@ -229,7 +227,7 @@ fn update_line(
 ) {
     let size = config.size;
     let mut cur = start;
-    let mut stack: Vec<(Piece, bool)> = vec![];
+    let mut stack: Vec<(PieceData, bool)> = vec![];
     for _ in 0..size {
         let stack_len = stack.len();
         if let Some(piece) = board.pieces[to_index(cur, size) as usize] {
@@ -258,7 +256,7 @@ fn update_line(
             let d = (end - start).length();
             let t = d / 4000.0;
             let tween = Tween::new(
-                EaseMethod::Linear,
+                EaseMethod::default(),
                 Duration::from_secs_f32(t + 0.01),
                 TransformPositionLens {
                     start: start.extend(2.0),
@@ -335,14 +333,13 @@ fn create_board(
     for i in 0..config.size {
         for j in 0..config.size {
             let world_pos = pos_to_world((i, j).into(), &config);
-            commands
-                .spawn(AsepriteSliceBundle {
-                    slice: "back".into(),
-                    aseprite: asset_server.load("sprites.aseprite"),
-                    transform: Transform::from_xyz(world_pos.x, world_pos.y, 2.0),
-                    ..default()
-                })
-                .set_parent(pivot.0);
+            commands.spawn((
+		    AseSpriteSlice {
+			name: "back".into(),
+			aseprite: asset_server.load("sprites.aseprite"),
+		    },
+                    Transform::from_xyz(world_pos.x, world_pos.y, 2.0),
+                )).set_parent(pivot.0);
         }
     }
 }
@@ -363,44 +360,36 @@ fn create_piece(
         None => Color::BLACK,
     };
     let base = commands
-        .spawn(AsepriteSliceBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 2.0),
-            slice: "piece".into(),
-            aseprite: sprite,
-            sprite: Sprite { color, ..default() },
-            ..default()
-        })
-        .id();
-    let text = commands
-        .spawn(Text2dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 4.0),
-            text: Text::from_section(
-                value.to_string(),
-                TextStyle {
-                    font,
-                    font_size: 48.0,
-                    color: Color::WHITE,
-                },
-            ),
-            ..default()
-        })
-        .id();
-    let world_pos = pos_to_world(pos, config);
-    let piece = commands
         .spawn((
-            PieceMarker,
-            TransformBundle {
-                local: Transform::from_xyz(world_pos.x, world_pos.y, 2.0),
+	    AseSpriteSlice {
+		name: "piece".into(),
+		aseprite: sprite,
+	    },
+            Transform::from_xyz(0.0, 0.0, 2.0),
+            Sprite { color, ..default() },
+        )).id();
+    let text = commands
+        .spawn((
+	    Text2d::new(value.to_string()),
+            Transform::from_xyz(0.0, 0.0, 4.0),
+	    TextFont {
+		font,
+                font_size: 48.0,
                 ..default()
-            },
-            VisibilityBundle { ..default() },
-            Value(value),
-            Pos(pos),
-        ))
-        .push_children(&[base, text])
+	    },
+	    TextColor(Color::WHITE),
+        )).id();
+    let world_pos = pos_to_world(pos, config);
+    let piece = commands.spawn((
+        Piece,
+	Transform::from_xyz(world_pos.x, world_pos.y, 2.0),
+        Visibility::Visible,
+        Value(value),
+        Pos(pos),
+    )).add_children(&[base, text])
         .set_parent(pivot.0)
         .id();
-    board.pieces[to_index(pos, config.size) as usize] = Some(Piece {
+    board.pieces[to_index(pos, config.size) as usize] = Some(PieceData {
         entity: piece,
         value,
         pos,
@@ -413,7 +402,7 @@ fn set_board(query: Query<(Entity, &Value, &Pos)>, mut board: ResMut<Board>, con
     }
 
     for (entity, value, pos) in query.iter() {
-        board.pieces[to_index(pos.0, config.size) as usize] = Some(Piece {
+        board.pieces[to_index(pos.0, config.size) as usize] = Some(PieceData {
             entity,
             value: value.0,
             pos: pos.0,
@@ -432,7 +421,7 @@ fn check_anim_end(
 fn anim_completed_event(
     mut commands: Commands,
     mut anim_event: EventReader<TweenCompleted>,
-    query: Query<(Entity, &MoveType), With<PieceMarker>>,
+    query: Query<(Entity, &MoveType), With<Piece>>,
     mut pos_query: Query<&mut Pos>,
     mut value_query: Query<&mut Value>,
     mut set_value_event: EventWriter<SetValueEvent>,
@@ -464,23 +453,16 @@ fn anim_completed_event(
 fn set_value_event(
     mut set_value_event: EventReader<SetValueEvent>,
     query: Query<&Children>,
-    mut text_query: Query<&mut Text>,
+    mut text_query: Query<&mut Text2d>,
     mut sprite_query: Query<&mut Sprite>,
-    font: Res<PieceFont>,
+    //font: Res<PieceFont>,
     color_map: Res<ColorMap>,
 ) {
     for event in set_value_event.read() {
         if let Ok(children) = query.get(event.entity) {
             for child in children.iter() {
                 if let Ok(mut text) = text_query.get_mut(*child) {
-                    *text = Text::from_section(
-                        event.value.to_string(),
-                        TextStyle {
-                            font: font.0.clone_weak(),
-                            font_size: 50.0,
-                            color: Color::WHITE,
-                        },
-                    );
+                    text.0 = event.value.to_string();
                 }
                 if let Ok(mut sprite) = sprite_query.get_mut(*child) {
                     sprite.color = color_map.map[&event.value];
@@ -510,7 +492,7 @@ fn new_game_event(
     mut board: ResMut<Board>,
     mut add_event: EventWriter<AddPieceEvent>,
     mut next_state: ResMut<NextState<AppState>>,
-    query: Query<Entity, With<PieceMarker>>,
+    query: Query<Entity, With<Piece>>,
     mut score: ResMut<Score>,
 ) {
     if !new_game_event.is_empty() {
@@ -560,8 +542,16 @@ fn start_game(mut next_state: ResMut<NextState<AppState>>) {
     next_state.set(AppState::Input);
 }
 
+#[derive(Clone, Copy)]
+struct PieceData {
+    entity: Entity,
+    value: i32,
+    pos: IVec2,
+}
 #[derive(Component)]
-struct PieceMarker;
+#[require(Transform, Visibility, Value, Pos)]
+struct Piece;
+
 
 #[derive(Event)]
 enum MoveEvent {
@@ -576,20 +566,13 @@ enum MoveType {
     Move(IVec2),
     MoveDouble((IVec2, Entity)),
 }
-
-#[derive(Clone, Copy)]
-struct Piece {
-    entity: Entity,
-    value: i32,
-    pos: IVec2,
-}
 #[derive(Resource)]
 struct Board {
-    pieces: Vec<Option<Piece>>,
+    pieces: Vec<Option<PieceData>>,
 }
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Value(i32);
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Pos(IVec2);
 
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
