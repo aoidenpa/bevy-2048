@@ -33,6 +33,8 @@ fn main() {
                     resolution: WindowResolution::new(config.window_size.x, config.window_size.y)
                         .with_scale_factor_override(1.0),
                     present_mode: PresentMode::AutoVsync,
+		    fit_canvas_to_parent: true,
+                    prevent_default_event_handling: false,
                     ..default()
                 }),
                 ..default()
@@ -104,7 +106,7 @@ fn setup(
     ));
     add_event.send(AddPieceEvent(2));
     //let font = asset_server.load("mai10/mai10.ttf");
-    let font = asset_server.load("rainyhearts.ttf");
+    let font = asset_server.load("dogicapixel.ttf");
     let title_font = asset_server.load("Early GameBoy.ttf");
     let sprite = asset_server.load("sprites.aseprite");
     commands.insert_resource(PieceFont(font));
@@ -374,7 +376,7 @@ fn create_piece(
             Transform::from_xyz(0.0, 0.0, 4.0),
 	    TextFont {
 		font,
-                font_size: 48.0,
+                font_size: 32.0,
                 ..default()
 	    },
 	    TextColor(Color::WHITE),

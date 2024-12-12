@@ -5,7 +5,8 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-bevy = { version = "0.15", features = ["dynamic_linking", "wayland"] }
+#bevy = { version = "0.15", features = ["dynamic_linking", "wayland"] }
+bevy = { version = "0.15" } 
 bevy_aseprite_ultra = "0.4.1"
 bevy_tweening = "0.12"
 rand = "0.8.5"

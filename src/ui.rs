@@ -39,7 +39,7 @@ fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<Title
 			Text::new("New Game (R)"),
 			TextFont {
 			    font: font.0.clone_weak(),
-                            font_size: 64.0,
+                            font_size: 32.0,
 			    ..default()
 			},
 			TextColor(Color::srgb(0.75, 0.75, 0.75)),
@@ -48,7 +48,7 @@ fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<Title
 	    parent.spawn((
 		Text::new("Score: "),
 		TextFont {
-		    font: title_font.0.clone_weak(),
+		    font: font.0.clone_weak(),
                     font_size: 32.0,
 		    ..default()
 		},
@@ -63,7 +63,7 @@ fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<Title
 		TextSpan::new("0"),
 		TextColor(Color::srgb(0.6, 0.6, 0.6)),
 		TextFont {
-		    font: title_font.0.clone_weak(),
+		    font: font.0.clone_weak(),
                     font_size: 32.0,
 		    ..default()
 		},
@@ -72,7 +72,7 @@ fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<Title
 	    parent.spawn((
 		Text::new("High: "),
 		TextFont {
-		    font: title_font.0.clone_weak(),
+		    font: font.0.clone_weak(),
                     font_size: 32.0,
 		    ..default()
 		},
@@ -87,7 +87,7 @@ fn create_ui(mut commands: Commands, font: Res<PieceFont>, title_font: Res<Title
 		TextSpan::new("0"),
 		TextColor(Color::srgb(0.6, 0.6, 0.6)),
 		TextFont {
-		    font: title_font.0.clone_weak(),
+		    font: font.0.clone_weak(),
                     font_size: 32.0,
 		    ..default()
 		},

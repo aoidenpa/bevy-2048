@@ -1,1 +1,4 @@
 /target
+bevy-2048-wasm.zip
+/wasm
+build_wasm.sh
